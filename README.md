@@ -40,8 +40,6 @@ wget https://apod.nasa.gov/apod/image/1706/BHmassChartGW17p1024.jpg
 
 Spin up VM
 
-or install docker on one of our monitoring Nagios servers...
-
 spin up container
 # Copy current background to backup file
 
@@ -61,57 +59,49 @@ curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null | grep IMG |sed -r 's
 
 eval $(curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null | grep IMG |sed -r 's/<IMG SRC="(.*)"/curl -o dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/' ) ; gsettings set org.gnome.desktop.background picture-uri "file:////home/jrogers/dkbg.jpg"
 
+su -c "setenforce 0"
+mkdir -p /docker/ConvolutedDKBG
 service docker start
-cd /docker
-mkdir curl
-cd curl
-vi Dockerfile   (https://github.com/uzyexe/dockerfile-curl)
-docker build . 
-docker build -t joe/curl .
-
-mkdir -p /home/jrogers/dkbg/
-docker run joe/curl https://apod.nasa.gov/apod/astropix.html  2> /dev/null | grep IMG |sed -r 's/<IMG SRC="(.*)"/docker run -v \/home\/jrogers\/dkbg:\/home  joe\/curl -o /home/dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/' > /home/jrogers/dkbg/url
-
-
-[root@esv-centos7-joe01 docker]# docker run -v /home/jrogers/dkbg:/home  joe/curl -o /home/dkbg.jpg https://apod.nasa.gov/apod/image/1706/BHmassChartGW17p1024.jpg
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  253k  100  253k    0     0   126k      0  0:00:02  0:00:02 --:--:--  126k
-[root@esv-centos7-joe01 docker]# ls -l /home/jrogers/dkbg/
-total 256
--rw-r--r--. 1 root root 259391 Jun  2 19:01 dkbg.jpg
-
-
-eval $(docker run joe/curl https://apod.nasa.gov/apod/astropix.html  2> /dev/null | grep IMG |sed -r 's/<IMG SRC="(.*)"/docker run -v \/home\/jrogers\/dkbg:\/home  joe\/curl -o \/home\/dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/')
+cd /docker/ConvolutedDKBG
+mkdir alpine
+cd alpine
+docker pull alpine
+docker  run -it --rm -v /docker/ConvolutedDKBG/vol1:/home alpine /bin/ash
 
 Now from within Alpine, installing curl inside the get image script:
-docker  run -it --rm -v /home/jrogers/dkbg:/home alpine /bin/ash
+docker  run -it --rm -v /docker/ConvolutedDKBG/vol1/:/home alpine /bin/ash
 apk --no-cache add curl
 /bin/ash /home/getnasaIOD.sh
 
 One Line:
-docker  run -v /home/jrogers/dkbg:/home alpine /bin/ash /home/getnasaIOD.sh
+docker  run -v /docker/ConvolutedDKBG/vol1/:/home alpine /bin/ash /home/getnasaIOD.sh
 
-# cat /home/jrogers/dkbg/getnasaIOD.sh
+# cat /docker/ConvolutedDKBG/vol1/getnasaIOD.sh
 #!/bin/ash
 apk --no-cache add curl
 curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null  | grep IMG |sed -r 's/<IMG SRC="(.*)"/curl -o \/home\/dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/'  | /bin/ash
 
 
 Or build curl into alpine:
-# cat /docker/alpine.curl/Dockerfile
+mkdir alpine.curl
+cd alpine.curl/
+vi Dockerfile
+# cat /docker/ConvolutedDKBG/alpine.curl/Dockerfile
 FROM alpine
 RUN apk update && apk upgrade
 RUN apk --no-cache add curl
+
+docker build .
+docker build -t alpine.curl .
 
 # cat getnasaIOD.sh
 #!/bin/ash
 curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null  | grep IMG |sed -r 's/<IMG SRC="(.*)"/curl -o \/home\/dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/'  | /bin/ash
 
-docker  run -it --rm -v /home/jrogers/dkbg:/home alpine.curl /bin/ash
+docker  run -it --rm -v /docker/ConvolutedDKBG/vol1/:/home alpine.curl /bin/ash
 
 One line:
-docker run -v /home/jrogers/dkbg:/home alpine.curl /bin/ash /home/getnasaIOD.sh
+docker run -v /docker/ConvolutedDKBG/vol1/:/home alpine.curl /bin/ash /home/getnasaIOD.sh
 
 Host image on web server:
 
@@ -128,4 +118,3 @@ Store image file on a database:
 
 
 Store Host image in pieces, with high availability, kill one piece and recover or continue to host from parity:
-
