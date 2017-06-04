@@ -1,4 +1,4 @@
-# ConvolutedDKBG
+onvolutedDKBG
 Docker AWS Method To Update Desktop Background Image
 
 Project:
@@ -65,16 +65,16 @@ service docker start
 cd /docker/ConvolutedDKBG
 mkdir alpine
 cd alpine
-docker pull alpine
-docker  run -it --rm -v /docker/ConvolutedDKBG/vol1:/home alpine /bin/ash
+sudo docker pull alpine
+sudo docker  run -it --rm -v /docker/ConvolutedDKBG/vol1:/home alpine /bin/ash
 
 Now from within Alpine, installing curl inside the get image script:
-docker  run -it --rm -v /docker/ConvolutedDKBG/vol1/:/home alpine /bin/ash
+sudo docker  run -it --rm -v /docker/ConvolutedDKBG/vol1/:/home alpine /bin/ash
 apk --no-cache add curl
 /bin/ash /home/getnasaIOD.sh
 
 One Line:
-docker  run -v /docker/ConvolutedDKBG/vol1/:/home alpine /bin/ash /home/getnasaIOD.sh
+sudo docker  run -v /docker/ConvolutedDKBG/vol1/:/home alpine /bin/ash /home/getnasaIOD.sh
 
 # cat /docker/ConvolutedDKBG/vol1/getnasaIOD.sh
 #!/bin/ash
@@ -91,21 +91,35 @@ FROM alpine
 RUN apk update && apk upgrade
 RUN apk --no-cache add curl
 
-docker build .
-docker build -t alpine.curl .
+sudo docker build .
+sudo docker build -t alpine.curl .
 
 # cat getnasaIOD.sh
 #!/bin/ash
 curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null  | grep IMG |sed -r 's/<IMG SRC="(.*)"/curl -o \/home\/dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/'  | /bin/ash
 
-docker  run -it --rm -v /docker/ConvolutedDKBG/vol1/:/home alpine.curl /bin/ash
+sudo docker  run -it --rm -v /docker/ConvolutedDKBG/vol1/:/home alpine.curl /bin/ash
 
 One line:
-docker run -v /docker/ConvolutedDKBG/vol1/:/home alpine.curl /bin/ash /home/getnasaIOD.sh
+sudo docker run -v /docker/ConvolutedDKBG/vol1/:/home alpine.curl /bin/ash /home/getnasaIOD.sh
 
 Host image on web server:
+mkdir /docker/ConvolutedDKBG/vol1/html/images
+mkdir -p /docker/ConvolutedDKBG/vol1/nginxconf
+sudo docker run -it --rm --name mynginx -v /docker/ConvolutedDKBG/nginx/conf:/tmp  -P nginx /bin/bash
+  inside nginx: cp -r /etc/nginx /tmp 
+
+sudo docker run -it --rm --name mynginx -v /docker/ConvolutedDKBG/nginx/content:/tmp  -P nginx /bin/bash
+  inside nginx: cp -r /usr/share/nginx/html /tmp
 
 
+# need more files for /etc/nginx, better to create Dockerfile
+sudo docker run --name mynginx -v /docker/ConvolutedDKBG/vol1/html/:/usr/share/nginx/html:ro -v /docker/ConvolutedDKBG/vol1/nginxconf:/etc/nginx:ro -P -d nginx
+
+So use this for now:
+sudo docker run --name mynginx -v /docker/ConvolutedDKBG/vol1/html/images:/usr/share/nginx/html/images:ro -P -d nginx
+sudo docker stop mynginx
+sudo docker rm mynginx
 
 Host image behind nginx load balancer:
 
@@ -118,3 +132,4 @@ Store image file on a database:
 
 
 Store Host image in pieces, with high availability, kill one piece and recover or continue to host from parity:
+
