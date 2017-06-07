@@ -1,5 +1,5 @@
 ConvolutedDKBG
-Docker AWS Method To Update Desktop Background Image
+Docker AWS Method To Update Ubuntu Desktop Background Image
 
 Project:
 Download Nasa's Astronomy image of the day and reset the background image on my Ubuntu Desktop, in an extremely convoluted, but cost efficient, method using Docker and AWS.
