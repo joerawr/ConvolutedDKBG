@@ -121,15 +121,10 @@ sudo docker run --name mynginx -v /docker/ConvolutedDKBG/vol1/html/images:/usr/s
 sudo docker stop mynginx
 sudo docker rm mynginx
 
-Host image behind nginx load balancer:
-
-
-
-Overlay image with AWS location it is being hosted on:
-
-
 Store image file on a database:
-
 
 Store Host image in pieces, with high availability, kill one piece and recover or continue to host from parity:
 
+Host image behind nginx load balancer:
+
+Overlay image with AWS location it is being hosted on:
