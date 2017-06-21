@@ -1,0 +1,37 @@
+version: "2"
+
+services:
+  alpine.curl:
+    build: ./alpine.curl
+    container_name: alpine1
+#    tty: true
+    volumes:
+      - shared-vol:/shared
+#    restart: always
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - shared-vol:/usr/share/nginx/html/images
+    ports:
+      - 8080
+#    networks:
+#      - front-tier
+#      - back-tier
+#    restart: always
+
+  haproxy:
+    image: tutum/haproxy
+    ports:
+      - 80:80
+    links:
+      - nginx:nginx
+
+volumes:
+  shared-vol:
+  
+#networks:
+#  front-tier:
+#    driver: bridge
+#  back-tier:
+#    driver: bridge

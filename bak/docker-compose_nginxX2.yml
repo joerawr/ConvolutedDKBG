@@ -1,0 +1,46 @@
+version: "2"
+
+services:
+  alpine.curl:
+    build: ./alpine.curl
+    container_name: alpine1
+#    tty: true
+    volumes:
+      - shared-vol:/shared
+#    restart: always
+
+  nginx1:
+    build: ./nginx
+    volumes:
+      - shared-vol:/usr/share/nginx/html/images
+    ports:
+      - "8080:80"
+#    restart: always
+
+  nginx2:
+    build: ./nginx
+    volumes:
+      - shared-vol:/usr/share/nginx/html/images
+    ports:
+      - "8081:80"
+#    restart: always
+
+  nginx3:
+    build: ./nginx
+    volumes:
+      - shared-vol:/usr/share/nginx/html/images
+    ports:
+      - "8082:80"
+#    restart: always
+
+  nginxlb:
+    build: ./nginx
+#    volumes:
+#      - shared-vol:/usr/share/nginx/html/images
+    ports:
+      - "80:80"
+#    restart: always
+
+volumes:
+  shared-vol:
+  

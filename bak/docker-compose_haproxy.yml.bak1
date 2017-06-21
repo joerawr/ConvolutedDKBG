@@ -1,0 +1,49 @@
+version: "2"
+
+services:
+  alpine.curl:
+    build: ./alpine.curl
+    container_name: alpine1
+#    tty: true
+    volumes:
+      - shared-vol:/shared
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - shared-vol:/usr/share/nginx/html/images
+    ports:
+      - 8080
+    links:
+      - php
+#    networks:
+#      - front-tier
+#      - back-tier
+
+  haproxy:
+#    image: tutum/haproxy
+    image: dockercloud/haproxy
+    ports:
+      - "80:80"
+    links:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+#
+#    networks:
+#      - front-tier
+#      - back-tier
+
+  php:
+    image: php:7-fpm
+    volumes:
+      - shared-vol:/usr/share/nginx/html
+
+volumes:
+  shared-vol:
+  
+#networks:
+#  front-tier:
+#    driver: bridge
+#  back-tier:
+#    driver: bridge

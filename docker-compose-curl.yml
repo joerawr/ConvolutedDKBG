@@ -1,3 +1,0 @@
-curl1:
-  build: ./alpine.curl
-

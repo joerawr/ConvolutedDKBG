@@ -4,18 +4,31 @@ services:
   alpine.curl:
     build: ./alpine.curl
     container_name: alpine1
-#    tty: true
     volumes:
       - shared-vol:/shared
-#    restart: always
 
   nginx:
     build: ./nginx
     volumes:
       - shared-vol:/usr/share/nginx/html/images
     ports:
+      - 8080
+    links:
+      - php
+
+  haproxy:
+    image: dockercloud/haproxy
+    ports:
       - "80:80"
-#    restart: always
+    links:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  php:
+    image: php:7-fpm
+    volumes:
+      - shared-vol:/usr/share/nginx/html
 
 volumes:
   shared-vol:

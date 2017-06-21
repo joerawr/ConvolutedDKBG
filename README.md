@@ -59,7 +59,7 @@ curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null | grep IMG |sed -r 's
 
 eval $(curl https://apod.nasa.gov/apod/astropix.html 2> /dev/null | grep IMG |sed -r 's/<IMG SRC="(.*)"/curl -o dkbg.jpg https:\/\/apod.nasa.gov\/apod\/\1/' ) ; gsettings set org.gnome.desktop.background picture-uri "file:////home/jrogers/dkbg.jpg"
 
-su -c "setenforce 0"
+su -c "setenforce 0"  # Required for CentOS
 mkdir -p /docker/ConvolutedDKBG
 service docker start
 cd /docker/ConvolutedDKBG
@@ -121,10 +121,26 @@ sudo docker run --name mynginx -v /docker/ConvolutedDKBG/vol1/html/images:/usr/s
 sudo docker stop mynginx
 sudo docker rm mynginx
 
+# Docker Compose
+# Clean up previous run, destroying the images and the share
+sudo docker-compose -f docker-compose_haproxy.yml down --rmi all; sudo docker volume rm convoluteddkbg_shared-vol
+
+# Bring it up
+sudo docker-compose -f docker-compose_haproxy.yml up --build -d
+
+# Scale it
+sudo docker-compose -f docker-compose_haproxy.yml scale nginx=5
+
+# cheap way of identifying the container IDs
+for i in {1..5}
+do sudo docker exec -it convoluteddkbg_nginx_$i sed -i "s/CONTNAME/nginx$i/" /usr/share/nginx/html/index.html
+done
+
+
 Store image file on a database:
 
 Store Host image in pieces, with high availability, kill one piece and recover or continue to host from parity:
 
-Host image behind nginx load balancer:
+Host image behind load balancer:
 
 Overlay image with AWS location it is being hosted on:
